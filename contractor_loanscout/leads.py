@@ -13,6 +13,7 @@ import re
 from dataclasses import dataclass
 from datetime import date
 
+from .churchlaw import church_or_law
 from .config import Rules
 from .contacts import is_role_address, is_wrong_department
 from .crawl import SiteCrawl, crawl_site, is_crawlable, registered_domain
@@ -116,6 +117,18 @@ def national_chain_hits(website: str, emails: tuple[str, ...], chains: tuple[str
                           snippet=f"{domain} is a national company (national_chains in contractor.yaml)",
                           source_url=website or domain, page_type="registry")]
     return []
+
+
+def church_or_law_hits(website: str, emails: tuple[str, ...]) -> list[SignalHit]:
+    """A disqualifying hit when the website or an email is a law firm's
+    (smithlaw.com). Names are checked earlier, before any lookup."""
+    domains = [registered_domain(website) if website else ""] + [domain_of(e) for e in emails if e]
+    signal_id, why = church_or_law((), domains)
+    if not signal_id:
+        return []
+    return [SignalHit(signal_id=signal_id, category="disqualify", weight=0.0,
+                      snippet=f"Churches and law firms are never leads — {why}",
+                      source_url=website or why, page_type="registry")]
 
 
 def _letters(text: str) -> str:
@@ -253,6 +266,7 @@ def build_lead(
     # supplier, a lender, a public company...) means no paid email search.
     site_hits = match_site(crawl.pages, rules) if crawl is not None and crawl.pages else []
     site_hits += national_chain_hits(listing.website, (c.email, site_email), contractor_rules.national_chains)
+    site_hits += church_or_law_hits(listing.website, (site_email,))
     disqualified = any(h.category == "disqualify" for h in site_hits)
 
     # Who the row addresses, and which email reaches them. The filed email is

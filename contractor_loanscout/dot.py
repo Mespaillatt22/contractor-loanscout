@@ -26,6 +26,7 @@ from pathlib import Path
 import requests
 import yaml
 
+from .churchlaw import church_or_law
 from .config import DATA_DIR, DEFAULT_CONTRACTOR_PATH, ConfigError
 from .cleanup import SHARED_MAIL
 from .contacts import _format_phone
@@ -328,6 +329,10 @@ def parse_carrier(record: dict, rules: ContractorRules, today: date | None = Non
     legal = (record.get("legal_name") or "").strip()
     dba = _clean_dba(record.get("dba_name"), legal)
     if not legal or rules.excluded(legal, dba):
+        return None
+    # Churches and law firms are never leads (a church's bus is in the census too).
+    email_domain = (record.get("email_address") or "").strip().lower().rpartition("@")[2]
+    if church_or_law((legal, dba), (email_domain,))[0]:
         return None
 
     power_units = _int(record.get("power_units"))

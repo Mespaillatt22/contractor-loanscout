@@ -68,6 +68,12 @@ safety rating, the top three pieces of evidence, and notes.
 
 ## Who is left out
 
+- **Churches and law firms** — never leads. Caught by name (Grace Baptist
+  Church, Church of God, New Hope Ministries, Law Offices of…, Attorneys at
+  Law, Esq.), by an email or website domain like `smithlaw.com`, or by website
+  wording ("join us for worship", "our pastor", "attorneys at law"). A business
+  merely named after a church (Church Organs Inc, a contractor called Church
+  Brothers Paving) stays.
 - **Suppliers, manufacturers and public bodies** — lumber yards, material
   suppliers, rental companies, utilities, cities and counties (by name;
   edit `exclude_name_words` in `config\contractor.yaml`).

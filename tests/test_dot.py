@@ -277,3 +277,12 @@ def test_find_returns_contractors(crules):
     found = find_contractors(client(FakeSession(4)), crules, "PA", ("191",), TODAY)
     assert len(found) == 4
     assert {c.trade for c in found} == {"Paving & asphalt"}
+
+
+def test_churches_and_law_firms_are_never_contractors(crules):
+    assert parse_carrier(carrier(legal_name="FIRST BAPTIST CHURCH OF DOVER"), crules, TODAY) is None
+    assert parse_carrier(carrier(legal_name="SMITH LAW FIRM PLLC"), crules, TODAY) is None
+    assert parse_carrier(carrier(email_address="pat@millerlaw.com"), crules, TODAY) is None
+    # A contractor whose owner is called Church, or who built one: kept.
+    assert parse_carrier(carrier(legal_name="CHURCH BROTHERS PAVING LLC"), crules, TODAY) is not None
+    assert parse_carrier(carrier(legal_name="TEMPLE GRADING AND CONSTRUCTION CO"), crules, TODAY) is not None
