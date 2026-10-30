@@ -37,3 +37,16 @@ pairs already in your existing CSV files.
 
 For a descriptive user-agent string, set `OSM_USER_AGENT` in your local
 `.env` file to identify your application and provide a contact route.
+
+
+## Email-only lead enrichment
+
+After an OSM search, run:
+
+```powershell
+.\.venv\Scripts\python.exe -m contractor_loanscout email-enrich --input out\osm_business_leads.csv --out out\email_leads.csv
+```
+
+This first enrichment version crawls only official website URLs already present in the OSM CSV. It checks the homepage and same-domain contact/about pages, and writes only rows where it finds a publicly listed email. Businesses without an OSM-listed website are skipped for now; automatic website discovery for those businesses is a separate next step.
+
+The email status is `publicly_listed_unverified`: the address was visible on a public page, but mailbox deliverability has not been tested. The email source URL is retained. Use a descriptive `EMAIL_CRAWLER_USER_AGENT` environment variable, crawl politely, and respect website terms, robots guidance, and applicable privacy/marketing laws.
