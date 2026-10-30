@@ -6,3 +6,4 @@ PyYAML>=6.0
 python-dotenv>=1.0
 dnspython>=2.6
 pytest>=8.0
+openpyxl>=3.1
