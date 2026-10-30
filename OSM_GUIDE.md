@@ -62,3 +62,44 @@ After email enrichment, run:
 This creates `company_master.csv` (one row per normalized company, with its unique emails grouped), `email_contacts.csv` (one row per unique email), `duplicate_review.csv` (excluded businesses, duplicate email rows, shared domains, and ownership-review flags), and `lead_deduplication.xlsx` (the same three views in workbook tabs).
 
 The initial exclusion list is deliberately explicit and editable in `contractor_loanscout/dedupe.py`. It includes large chains/institutions and non-business/nonprofit entries identified in the initial Philadelphia sample. Saxbys, Parc, and Amada are flagged for ownership review rather than automatically excluded. Shared website domains are flagged, not merged, because different businesses can share a web domain. Company-name normalization groups punctuation and common legal-suffix variants; inspect the review report before treating the output as a verified list of independent owners. The original enrichment CSV is never overwritten.
+
+
+## Nationwide master email-lead file
+
+The nationwide prospect list is maintained in one file: `out/master_email_leads.csv`.
+It contains one row per unique public email address, with company name, first/last
+name and contact title when found, phone, website, city, state, category, source,
+and the page where the email was listed. A company can have more than one distinct
+public email, but an email is not duplicated. A row is only accepted when both a
+company name and public email are present. Rows matching the explicit exclusion
+list are skipped. A conflicting email associated with a different company is
+held back rather than silently reassigned.
+
+### One-time migration of your Philadelphia leads
+
+Run the dedupe step on your existing Philadelphia email file if you have not
+already done so, then import its email contacts into the master:
+
+```powershell
+.\.venv\Scripts\python.exe -m contractor_loanscout master-update --input out\deduplicated\email_contacts.csv --master out\master_email_leads.csv
+```
+
+If your existing file is instead `out\email_leads.csv`, you can import that
+directly. The master command understands both the enriched email CSV and the
+deduplicated contacts CSV.
+
+### Add each new market to the same master
+
+After discovery and email enrichment, run:
+
+```powershell
+.\.venv\Scripts\python.exe -m contractor_loanscout master-update --input out\florida_email_leads.csv --master out\master_email_leads.csv
+```
+
+For later markets, use their new email-enrichment CSV as `--input` but keep
+the same `--master out\master_email_leads.csv` path. The master update is
+incremental: it adds new email contacts, fills blank fields on existing
+contacts, and does not overwrite populated fields with blanks. It does not
+automatically verify whether a listed email is deliverable or whether a
+company is independently owned. First/last names are only included when a
+source provides them; the crawler does not guess names.
